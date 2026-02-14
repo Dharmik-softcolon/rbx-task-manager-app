@@ -83,13 +83,32 @@ export default function EarnScreen() {
           </View>
         </View>
 
-        {/* Task List */}
+        {/* Daily Tasks */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Daily Missions</Text>
+        </View>
         <View style={styles.tasksSection}>
-          {tasks.tasks.map((task, index) => (
+          {tasks.tasks.filter(t => t.category === 'daily').map((task, index) => (
             <TaskCard
               key={task.id}
               task={task}
               index={index}
+              colors={c}
+              onPress={() => handleTaskPress(task)}
+            />
+          ))}
+        </View>
+
+        {/* Bonus Tasks */}
+        <View style={[styles.sectionHeader, { marginTop: Spacing.xl }]}>
+          <Text style={styles.sectionTitle}>Bonus Earning</Text>
+        </View>
+        <View style={styles.tasksSection}>
+          {tasks.tasks.filter(t => t.category === 'bonus').map((task, index) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              index={index + 5} // Offset for animation
               colors={c}
               onPress={() => handleTaskPress(task)}
             />
@@ -270,6 +289,14 @@ const createStyles = (c: any) =>
       ...Typography.body,
       color: c.textSecondary,
       marginTop: 4,
+    },
+    sectionHeader: {
+      paddingHorizontal: Spacing.xl,
+      marginBottom: Spacing.md,
+    },
+    sectionTitle: {
+      ...Typography.h3,
+      color: c.textPrimary,
     },
     summaryCard: {
       flexDirection: 'row',

@@ -77,8 +77,8 @@ export const Typography = {
   small: { fontSize: 10, fontWeight: '500' as const },
   button: { fontSize: 16, fontWeight: '600' as const, letterSpacing: 0.3 },
   coinLarge: { fontSize: 36, fontWeight: '800' as const, letterSpacing: -1 },
-  coinMedium: { fontSize: 24, fontWeight: '700' as const, letterSpacing: -0.5 },
-  tiny: { fontSize: 8, fontWeight: '700' as const },
+  coinMedium: { fontSize: 24, fontWeight: '700' as const, letterSpacing: -0.5, fontFamily: 'System' },
+  tiny: { fontSize: 8, fontWeight: '700' as const, fontFamily: 'System' },
 };
 
 export const Spacing = {

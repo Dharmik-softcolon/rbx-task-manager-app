@@ -19,6 +19,7 @@ import { checkAchievements } from '../../store/slices/achievementSlice';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { getUserRank, getRankProgress, getNextRank } from '../../constants/levels';
 import AnimatedCounter from '../../components/common/AnimatedCounter';
+import CoinIcon from '../../components/common/CoinIcon';
 
 export default function HomeScreen() {
   const { theme } = useTheme();
@@ -114,7 +115,7 @@ export default function HomeScreen() {
             <Icon name="wallet" size={20} color="rgba(255,255,255,0.8)" />
           </View>
           <View style={styles.balanceRow}>
-            <Text style={styles.currencySymbol}>🪙</Text>
+            <CoinIcon size={32} style={{ marginRight: 8 }} />
             <AnimatedCounter 
               value={user.currentBalance} 
               style={styles.balanceAmount} 
@@ -234,19 +235,23 @@ export default function HomeScreen() {
             <Text style={styles.menuText}>Achievements</Text>
             <Icon name="chevron-right" size={20} color={c.textTertiary} />
           </TouchableOpacity>
-          
+
           <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: c.card, borderColor: c.border }]} 
+            style={[styles.actionBanner, { backgroundColor: '#EC4899' + '15', borderColor: '#EC4899', marginTop: Spacing.md }]}
             onPress={() => navigation.navigate('Referral' as any)}
+            activeOpacity={0.8}
           >
-            <View style={[styles.menuIcon, { backgroundColor: '#EC489915' }]}>
-              <Icon name="account-multiple-plus" size={22} color="#EC4899" />
+            <View style={[styles.iconBox, { backgroundColor: '#EC4899' }]}>
+              <Icon name="account-multiple-plus" size={24} color="#FFFFFF" />
             </View>
-            <Text style={styles.menuText}>Invite Friends</Text>
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerTitle}>Invite Friends</Text>
+              <Text style={styles.bannerSubtitle}>Earn 200 RBX for every referral</Text>
+            </View>
             <View style={[styles.menuBadge, { backgroundColor: c.success + '20' }]}>
               <Text style={[styles.menuBadgeText, { color: c.success }]}>+200 RBX</Text>
             </View>
-            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+            <Icon name="chevron-right" size={24} color={c.textSecondary} />
           </TouchableOpacity>
         </View>
 

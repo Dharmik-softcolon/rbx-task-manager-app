@@ -18,6 +18,7 @@ import { withdrawCoins } from '../../store/slices/userSlice';
 import { addTransaction } from '../../store/slices/transactionSlice';
 import { RootStackParamList } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import CoinIcon from '../../components/common/CoinIcon';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -104,9 +105,10 @@ export default function ProfileScreen() {
           <View style={styles.walletRow}>
             <View style={styles.walletItem}>
               <Text style={styles.walletLabel}>RBX Balance</Text>
-              <Text style={styles.walletValue}>
-                🪙 {user.currentBalance.toLocaleString()}
-              </Text>
+              <View style={[styles.walletValue, { flexDirection: 'row', alignItems: 'center' }]}>
+                <CoinIcon size={20} style={{ marginRight: 6 }} />
+                <Text style={styles.walletValue}>{user.currentBalance.toLocaleString()}</Text>
+              </View>
             </View>
             <View style={styles.walletDivider} />
             <View style={styles.walletItem}>
@@ -193,6 +195,46 @@ export default function ProfileScreen() {
               thumbColor={isDark ? c.primary : '#f4f3f4'}
             />
           </View>
+
+        </View>
+
+        {/* Legal & Support */}
+        <View style={styles.sectionLabel}>
+          <Text style={styles.sectionTitle}>Support</Text>
+        </View>
+        <View style={styles.settingsCard}>
+          <TouchableOpacity 
+            style={[styles.settingRow, { paddingVertical: Spacing.sm }]}
+            onPress={() => navigation.navigate('FAQ')}
+          >
+            <View style={styles.settingLeft}>
+              <Icon name="help-circle-outline" size={22} color={c.info} />
+              <Text style={styles.settingLabel}>Help & FAQ</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <TouchableOpacity 
+            style={[styles.settingRow, { paddingVertical: Spacing.sm }]}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          >
+            <View style={styles.settingLeft}>
+              <Icon name="shield-check-outline" size={22} color={c.success} />
+              <Text style={styles.settingLabel}>Privacy Policy</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <TouchableOpacity 
+            style={[styles.settingRow, { paddingVertical: Spacing.sm }]}
+            onPress={() => navigation.navigate('Terms')}
+          >
+            <View style={styles.settingLeft}>
+              <Icon name="file-document-outline" size={22} color={c.warning} />
+              <Text style={styles.settingLabel}>Terms of Service</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+          </TouchableOpacity>
         </View>
 
         {/* App Info */}

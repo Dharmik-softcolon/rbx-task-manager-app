@@ -73,7 +73,14 @@ export default function OnboardingScreen() {
     return (
       <View style={[styles.slide, { width }]}>
         <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
-          <Icon name={item.icon} size={100} color={item.color} />
+          {item.id === '1' ? (
+            <Image 
+              source={require('../../assets/images/app_icon.jpg')} 
+              style={{ width: 140, height: 140, borderRadius: 30 }} 
+            />
+          ) : (
+            <Icon name={item.icon} size={100} color={item.color} />
+          )}
         </View>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.description}>{item.description}</Text>

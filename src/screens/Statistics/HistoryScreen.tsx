@@ -12,6 +12,7 @@ import { useTheme } from '../../hooks/ThemeContext';
 import { useAppSelector } from '../../hooks/useStore';
 import { Transaction, TransactionType } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import CoinIcon from '../../components/common/CoinIcon';
 
 const FILTER_OPTIONS: { label: string; value: TransactionType | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -93,9 +94,12 @@ export default function HistoryScreen() {
           <Text style={styles.txDescription}>{item.description}</Text>
           <Text style={styles.txTime}>{dateStr} • {timeStr}</Text>
         </View>
-        <Text style={[styles.txAmount, { color: item.amount > 0 ? c.success : c.error }]}>
-          {item.amount > 0 ? '+' : ''}{item.amount} RBX
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[styles.txAmount, { color: item.amount > 0 ? c.success : c.error }]}>
+            {item.amount > 0 ? '+' : ''}{item.amount}
+          </Text>
+          <CoinIcon size={14} style={{ marginLeft: 4 }} />
+        </View>
       </View>
     );
   };
@@ -112,7 +116,10 @@ export default function HistoryScreen() {
       <View style={styles.chartCard}>
         <View style={styles.chartHeader}>
           <Text style={styles.chartTitle}>Last 7 Days</Text>
-          <Text style={styles.chartTotal}>Total: {totalEarned} RBX</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.chartTotal}>Total: {totalEarned}</Text>
+            <CoinIcon size={14} style={{ marginLeft: 4 }} />
+          </View>
         </View>
         <View style={styles.chartContainer}>
           {last7DaysData.map((day, i) => (

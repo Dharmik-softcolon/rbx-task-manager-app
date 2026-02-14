@@ -17,6 +17,7 @@ import { addTransaction } from '../../store/slices/transactionSlice';
 import { DAILY_REWARD_VALUES } from '../../constants/levels';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import AnimatedCounter from '../../components/common/AnimatedCounter';
+import CoinIcon from '../../components/common/CoinIcon';
 
 export default function DailyRewardScreen() {
   const { theme } = useTheme();
@@ -91,7 +92,7 @@ export default function DailyRewardScreen() {
                   <Icon name="check-circle" size={32} color={c.success} />
                 ) : (
                   <>
-                    <Text style={styles.coinEmoji}>{dayNum === 7 ? '💰' : '🪙'}</Text>
+                    <CoinIcon size={dayNum === 7 ? 32 : 24} style={{ marginBottom: 4 }} />
                     <Text style={[styles.amountText, isCurrent && { color: c.textInverse }]}>
                       {amount}
                     </Text>

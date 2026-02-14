@@ -12,11 +12,12 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import { useTheme } from '../../hooks/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../../hooks/useStore';
-import { completeTask, claimTaskReward } from '../../store/slices/taskSlice';
+import { completeTask, claimReward } from '../../store/slices/taskSlice';
 import { addCoins } from '../../store/slices/userSlice';
 import { addTransaction } from '../../store/slices/transactionSlice';
 import { RootStackParamList, TaskType } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import CoinIcon from '../../components/common/CoinIcon';
 
 type TaskDetailRoute = RouteProp<RootStackParamList, 'TaskDetail'>;
 
@@ -101,7 +102,7 @@ export default function TaskDetailScreen() {
     ]).start();
 
     dispatch(addCoins(task.reward));
-    dispatch(claimTaskReward(taskId));
+    dispatch(claimReward(taskId));
     dispatch(
       addTransaction({
         type: taskId,
@@ -139,7 +140,7 @@ export default function TaskDetailScreen() {
 
       {/* Reward Preview */}
       <View style={styles.rewardPreview}>
-        <Text style={styles.rewardEmoji}>🪙</Text>
+        <CoinIcon size={40} />
         <Text style={styles.rewardAmount}>{task.reward}</Text>
         <Text style={styles.rewardLabel}>RBX Coins</Text>
       </View>

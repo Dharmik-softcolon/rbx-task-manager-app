@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../../hooks/useStore';
-import { completeTask, claimTaskReward, setSpinReward } from '../../store/slices/taskSlice';
+import { completeTask, claimReward } from '../../store/slices/taskSlice';
 import { addCoins } from '../../store/slices/userSlice';
 import { addTransaction } from '../../store/slices/transactionSlice';
 import { SpinSegment } from '../../types';
@@ -74,7 +74,6 @@ export default function SpinWheelScreen() {
       currentAngle.current = (startAngle + totalAngle) % 360;
       setIsSpinning(false);
       setHasSpun(true);
-      dispatch(setSpinReward(won));
       dispatch(completeTask('spin_wheel'));
     });
 
@@ -89,7 +88,7 @@ export default function SpinWheelScreen() {
 
   const handleClaim = () => {
     dispatch(addCoins(wonAmount));
-    dispatch(claimTaskReward('spin_wheel'));
+    dispatch(claimReward('spin_wheel'));
     dispatch(
       addTransaction({
         type: 'spin_wheel',

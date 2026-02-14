@@ -11,6 +11,7 @@ import { useAppSelector } from '../../hooks/useStore';
 import { LeaderboardEntry } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import AnimatedCounter from '../../components/common/AnimatedCounter';
+import CoinIcon from '../../components/common/CoinIcon';
 
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
   { id: '2', username: 'CryptoKing', avatarEmoji: '👑', totalCoins: 58420, rank: 'diamond', isCurrentUser: false },
@@ -62,12 +63,12 @@ export default function LeaderboardScreen() {
             {item.username}
           </Text>
         </View>
-        <View style={styles.scoreCol}>
+        <View style={[styles.scoreCol, { flexDirection: 'row', alignItems: 'center' }]}>
           <AnimatedCounter 
             value={item.totalCoins} 
             style={[styles.score, isTop3 ? { color: rankColor, fontWeight: '700' } : undefined]}
-            suffix=" RBX"
           />
+          <CoinIcon size={14} style={{ marginLeft: 4 }} />
         </View>
       </View>
     );
@@ -90,7 +91,10 @@ export default function LeaderboardScreen() {
         <View style={styles.divider} />
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={styles.currentUserLabel}>Your Earnings</Text>
-          <Text style={styles.currentUserScore}>{user.totalCoinsEarned.toLocaleString()} RBX</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.currentUserScore}>{user.totalCoinsEarned.toLocaleString()}</Text>
+            <CoinIcon size={18} style={{ marginLeft: 6 }} />
+          </View>
         </View>
       </View>
 

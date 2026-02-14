@@ -19,6 +19,10 @@ import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 import AchievementsScreen from '../screens/Achievements/AchievementsScreen';
 import ReferralScreen from '../screens/Profile/ReferralScreen';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
+import PrivacyPolicyScreen from '../screens/Legal/PrivacyPolicyScreen';
+import TermsScreen from '../screens/Legal/TermsScreen';
+import FAQScreen from '../screens/Support/FAQScreen';
+
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -175,6 +179,36 @@ export default function AppNavigator() {
           options={{
             headerShown: true,
             headerTitle: 'Invite Friends',
+            headerStyle: { backgroundColor: c.surface },
+            headerTintColor: c.textPrimary,
+          }}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Privacy Policy',
+            headerStyle: { backgroundColor: c.surface },
+            headerTintColor: c.textPrimary,
+          }}
+        />
+        <Stack.Screen
+          name="Terms"
+          component={TermsScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Terms of Service',
+            headerStyle: { backgroundColor: c.surface },
+            headerTintColor: c.textPrimary,
+          }}
+        />
+        <Stack.Screen
+          name="FAQ"
+          component={FAQScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Help & FAQ',
             headerStyle: { backgroundColor: c.surface },
             headerTintColor: c.textPrimary,
           }}

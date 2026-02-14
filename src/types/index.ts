@@ -15,12 +15,19 @@ export interface UserProfile {
 // ============ Tasks ============
 export type TaskType =
   | 'watch_video'
+  | 'watch_video_1'
   | 'daily_checkin'
   | 'spin_wheel'
   | 'share_app'
   | 'follow_social'
   | 'rate_app'
-  | 'bonus_video';
+  | 'bonus_video'
+  | 'complete_survey_1'
+  | 'install_app_clash'
+  | 'install_app_tiktok'
+  | 'install_app_uber'
+  | 'follow_social_ig'
+  | 'follow_social_yt';
 
 export interface DailyTask {
   id: TaskType;
@@ -33,6 +40,7 @@ export interface DailyTask {
   claimed: boolean;
   lastCompletedDate: string | null;
   category: 'daily' | 'bonus';
+  videoUrl?: string;
 }
 
 export interface TasksState {
@@ -51,6 +59,13 @@ export type TransactionType =
   | 'follow_social'
   | 'rate_app'
   | 'bonus_video'
+  | 'watch_video_1'
+  | 'install_app_clash'
+  | 'install_app_tiktok'
+  | 'install_app_uber'
+  | 'complete_survey_1'
+  | 'follow_social_ig'
+  | 'follow_social_yt'
   | 'daily_reward'
   | 'referral_bonus'
   | 'achievement_bonus'
@@ -153,6 +168,9 @@ export type RootStackParamList = {
   Referral: undefined;
   DailyReward: undefined;
   Leaderboard: undefined;
+  PrivacyPolicy: undefined;
+  Terms: undefined;
+  FAQ: undefined;
 };
 
 export type MainTabParamList = {
