@@ -12,16 +12,17 @@ import { LeaderboardEntry } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import AnimatedCounter from '../../components/common/AnimatedCounter';
 import CoinIcon from '../../components/common/CoinIcon';
+import ProfileAvatar from '../../components/common/ProfileAvatar';
 
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { id: '2', username: 'CryptoKing', avatarEmoji: '👑', totalCoins: 58420, rank: 'diamond', isCurrentUser: false },
-  { id: '3', username: 'RBX_Hunter', avatarEmoji: '🚀', totalCoins: 42100, rank: 'platinum', isCurrentUser: false },
-  { id: '4', username: 'MoneyMaker', avatarEmoji: '💸', totalCoins: 28900, rank: 'platinum', isCurrentUser: false },
-  { id: '5', username: 'TaskMaster', avatarEmoji: '🎯', totalCoins: 15600, rank: 'gold', isCurrentUser: false },
-  { id: '6', username: 'LuckySpinner', avatarEmoji: '🎲', totalCoins: 12400, rank: 'gold', isCurrentUser: false },
-  { id: '7', username: 'CoinCollector', avatarEmoji: '💰', totalCoins: 8900, rank: 'gold', isCurrentUser: false },
-  { id: '8', username: 'EarlyBird', avatarEmoji: '🦅', totalCoins: 5200, rank: 'silver', isCurrentUser: false },
-  { id: '9', username: 'GamerGirl', avatarEmoji: '👾', totalCoins: 3100, rank: 'silver', isCurrentUser: false },
+  { id: '2', username: 'CryptoKing', profileImage: null, totalCoins: 58420, rank: 'diamond', isCurrentUser: false },
+  { id: '3', username: 'RBX_Hunter', profileImage: null, totalCoins: 42100, rank: 'platinum', isCurrentUser: false },
+  { id: '4', username: 'MoneyMaker', profileImage: null, totalCoins: 28900, rank: 'platinum', isCurrentUser: false },
+  { id: '5', username: 'TaskMaster', profileImage: null, totalCoins: 15600, rank: 'gold', isCurrentUser: false },
+  { id: '6', username: 'LuckySpinner', profileImage: null, totalCoins: 12400, rank: 'gold', isCurrentUser: false },
+  { id: '7', username: 'CoinCollector', profileImage: null, totalCoins: 8900, rank: 'gold', isCurrentUser: false },
+  { id: '8', username: 'EarlyBird', profileImage: null, totalCoins: 5200, rank: 'silver', isCurrentUser: false },
+  { id: '9', username: 'GamerGirl', profileImage: null, totalCoins: 3100, rank: 'silver', isCurrentUser: false },
 ] as LeaderboardEntry[];
 
 export default function LeaderboardScreen() {
@@ -35,7 +36,7 @@ export default function LeaderboardScreen() {
     {
       id: user.id,
       username: user.username,
-      avatarEmoji: user.avatarEmoji,
+      profileImage: user.profileImage,
       totalCoins: user.totalCoinsEarned,
       rank: 'rookie' as const, // Calculated dynamically in real app
       isCurrentUser: true,
@@ -57,7 +58,12 @@ export default function LeaderboardScreen() {
             <Text style={styles.rankText}>{index + 1}</Text>
           )}
         </View>
-        <Text style={styles.avatar}>{item.avatarEmoji}</Text>
+        <ProfileAvatar 
+          uri={item.profileImage} 
+          name={item.username} 
+          size={32} 
+          style={{ marginHorizontal: Spacing.sm }}
+        />
         <View style={styles.infoCol}>
           <Text style={[styles.username, item.isCurrentUser && { color: c.primary, fontWeight: '700' }]}>
             {item.username}
@@ -191,10 +197,6 @@ const createStyles = (c: any) =>
     rankText: {
       ...Typography.h3,
       color: c.textTertiary,
-    },
-    avatar: {
-      fontSize: 24,
-      marginHorizontal: Spacing.sm,
     },
     infoCol: {
       flex: 1,

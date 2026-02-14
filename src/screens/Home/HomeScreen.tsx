@@ -20,6 +20,7 @@ import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { getUserRank, getRankProgress, getNextRank } from '../../constants/levels';
 import AnimatedCounter from '../../components/common/AnimatedCounter';
 import CoinIcon from '../../components/common/CoinIcon';
+import ProfileAvatar from '../../components/common/ProfileAvatar';
 
 export default function HomeScreen() {
   const { theme } = useTheme();
@@ -119,7 +120,11 @@ export default function HomeScreen() {
           <TouchableOpacity
             onPress={() => navigation.navigate('Profile' as any)}
           >
-            <Text style={styles.avatar}>{user.avatarEmoji}</Text>
+            <ProfileAvatar 
+              uri={user.profileImage} 
+              name={user.username} 
+              size={44} 
+            />
           </TouchableOpacity>
         </Animated.View>
 
@@ -363,13 +368,6 @@ const createStyles = (c: any) =>
     username: {
       ...Typography.h2,
       color: c.textPrimary,
-    },
-    avatar: {
-      fontSize: 40,
-      backgroundColor: c.card,
-      padding: 4,
-      borderRadius: BorderRadius.full,
-      overflow: 'hidden',
     },
     balanceCard: {
       backgroundColor: c.primary,

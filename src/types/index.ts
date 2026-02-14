@@ -2,7 +2,7 @@
 export interface UserProfile {
   id: string;
   username: string;
-  avatarEmoji: string;
+  profileImage: string | null;
   createdAt: string;
   totalCoinsEarned: number;
   currentBalance: number;
@@ -187,7 +187,7 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export interface LeaderboardEntry {
   id: string;
   username: string;
-  avatarEmoji: string;
+  profileImage: string | null;
   totalCoins: number;
   rank: RankId;
   isCurrentUser: boolean;

@@ -9,17 +9,13 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../../hooks/useStore';
-import { updateUsername, updateAvatar } from '../../store/slices/userSlice';
+import { updateUsername, updateProfileImage } from '../../store/slices/userSlice';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
-
-const EMOJI_OPTIONS = [
-  '🎮', '🕹️', '👾', '🎯', '🏆', '⭐', '💎', '🔥',
-  '🚀', '🎲', '🎪', '🦊', '🐱', '🐶', '🦁', '🐼',
-  '😎', '🤖', '👻', '🎃', '💀', '🦄', '🐉', '🌟',
-];
+import ProfileAvatar from '../../components/common/ProfileAvatar';
 
 export default function EditProfileScreen() {
   const { theme } = useTheme();
@@ -29,7 +25,18 @@ export default function EditProfileScreen() {
   const user = useAppSelector(state => state.user);
 
   const [username, setUsername] = useState(user.username);
-  const [selectedEmoji, setSelectedEmoji] = useState(user.avatarEmoji);
+  const [profileImage, setProfileImage] = useState(user.profileImage);
+
+  const handlePickImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri || null);
+    }
+  };
 
   const handleSave = () => {
     if (!username.trim()) {
@@ -37,7 +44,7 @@ export default function EditProfileScreen() {
       return;
     }
     dispatch(updateUsername(username.trim()));
-    dispatch(updateAvatar(selectedEmoji));
+    dispatch(updateProfileImage(profileImage));
     Alert.alert('Saved!', 'Your profile has been updated.', [
       { text: 'OK', onPress: () => navigation.goBack() },
     ]);
@@ -50,25 +57,20 @@ export default function EditProfileScreen() {
       {/* Avatar Section */}
       <View style={styles.avatarSection}>
         <View style={styles.currentAvatar}>
-          <Text style={styles.currentAvatarEmoji}>{selectedEmoji}</Text>
+          <ProfileAvatar 
+            uri={profileImage} 
+            name={username} 
+            size={96} 
+          />
         </View>
-        <Text style={styles.avatarLabel}>Choose your avatar</Text>
-      </View>
-
-      {/* Emoji Grid */}
-      <View style={styles.emojiGrid}>
-        {EMOJI_OPTIONS.map((emoji, i) => (
-          <TouchableOpacity
-            key={i}
-            style={[
-              styles.emojiOption,
-              selectedEmoji === emoji && styles.emojiOptionSelected,
-            ]}
-            onPress={() => setSelectedEmoji(emoji)}
-            activeOpacity={0.7}>
-            <Text style={styles.emojiText}>{emoji}</Text>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity 
+          style={styles.changePhotoButton} 
+          onPress={handlePickImage}
+          activeOpacity={0.7}
+        >
+          <Icon name="camera" size={20} color={c.primary} />
+          <Text style={styles.changePhotoText}>Change Photo</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Username */}
@@ -110,50 +112,28 @@ const createStyles = (c: any) =>
       marginBottom: Spacing.xl,
     },
     currentAvatar: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
-      backgroundColor: c.primary + '18',
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: c.card,
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 3,
-      borderColor: c.primary,
-    },
-    currentAvatarEmoji: {
-      fontSize: 48,
-    },
-    avatarLabel: {
-      ...Typography.bodyMedium,
-      color: c.textSecondary,
-      marginTop: Spacing.md,
-    },
-    emojiGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: Spacing.sm,
-      marginBottom: Spacing.xxl,
-      backgroundColor: c.card,
-      padding: Spacing.lg,
-      borderRadius: BorderRadius.lg,
       borderWidth: 1,
       borderColor: c.border,
+      overflow: 'hidden',
     },
-    emojiOption: {
-      width: 48,
-      height: 48,
-      borderRadius: BorderRadius.md,
-      justifyContent: 'center',
+    changePhotoButton: {
+      flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: c.inputBackground,
+      gap: 8,
+      marginTop: Spacing.md,
+      paddingVertical: Spacing.xs,
+      paddingHorizontal: Spacing.md,
     },
-    emojiOptionSelected: {
-      backgroundColor: c.primary + '30',
-      borderWidth: 2,
-      borderColor: c.primary,
-    },
-    emojiText: {
-      fontSize: 24,
+    changePhotoText: {
+      ...Typography.bodyMedium,
+      color: c.primary,
+      fontWeight: '600',
     },
     inputLabel: {
       ...Typography.subtitle,

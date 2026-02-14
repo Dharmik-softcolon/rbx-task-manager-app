@@ -19,6 +19,7 @@ import { addTransaction } from '../../store/slices/transactionSlice';
 import { RootStackParamList } from '../../types';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import CoinIcon from '../../components/common/CoinIcon';
+import ProfileAvatar from '../../components/common/ProfileAvatar';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -85,9 +86,11 @@ export default function ProfileScreen() {
           style={styles.profileCard}
           onPress={() => navigation.navigate('EditProfile')}
           activeOpacity={0.7}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarEmoji}>{user.avatarEmoji}</Text>
-          </View>
+          <ProfileAvatar 
+            uri={user.profileImage} 
+            name={user.username} 
+            size={56} 
+          />
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{user.username}</Text>
             <Text style={styles.profileSince}>
@@ -270,17 +273,6 @@ const createStyles = (c: any) =>
       borderRadius: BorderRadius.lg,
       borderWidth: 1,
       borderColor: c.border,
-    },
-    avatarContainer: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.primary + '18',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarEmoji: {
-      fontSize: 28,
     },
     profileInfo: {
       flex: 1,

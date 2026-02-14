@@ -5,7 +5,7 @@ import { generateReferralCode } from '../../constants/levels';
 const initialState: UserProfile = {
   id: 'user_1',
   username: 'RBX Player',
-  avatarEmoji: '🎮',
+  profileImage: null,
   createdAt: new Date().toISOString(),
   totalCoinsEarned: 0,
   currentBalance: 0,
@@ -22,8 +22,8 @@ const userSlice = createSlice({
     updateUsername(state, action: PayloadAction<string>) {
       state.username = action.payload;
     },
-    updateAvatar(state, action: PayloadAction<string>) {
-      state.avatarEmoji = action.payload;
+    updateProfileImage(state, action: PayloadAction<string | null>) {
+      state.profileImage = action.payload;
     },
     addCoins(state, action: PayloadAction<number>) {
       state.currentBalance += action.payload;
@@ -50,7 +50,7 @@ const userSlice = createSlice({
 
 export const {
   updateUsername,
-  updateAvatar,
+  updateProfileImage,
   addCoins,
   withdrawCoins,
   completeOnboarding,
