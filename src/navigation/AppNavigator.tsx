@@ -208,7 +208,7 @@ export default function AppNavigator() {
           component={FAQScreen}
           options={{
             headerShown: true,
-            headerTitle: 'Help & FAQ',
+            headerTitle: 'FAQ',
             headerStyle: { backgroundColor: c.surface },
             headerTintColor: c.textPrimary,
           }}

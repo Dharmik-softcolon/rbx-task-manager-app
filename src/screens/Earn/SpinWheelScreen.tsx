@@ -97,7 +97,7 @@ export default function SpinWheelScreen() {
         balanceAfter: user.currentBalance + wonAmount,
       }),
     );
-    Alert.alert('🎉 You Won!', `${wonAmount} RBX coins added to your balance!`, [
+    Alert.alert('You Won!', `${wonAmount} RBX coins added to your balance!`, [
       { text: 'Amazing!', onPress: () => navigation.goBack() },
     ]);
   };
@@ -183,7 +183,7 @@ export default function SpinWheelScreen() {
       {/* Result */}
       {hasSpun && !spinTask?.claimed && (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>🎉 You won</Text>
+          <Text style={styles.resultText}>You won</Text>
           <Text style={styles.resultAmount}>{wonAmount} RBX</Text>
           <TouchableOpacity style={styles.claimButton} onPress={handleClaim} activeOpacity={0.8}>
             <Icon name="gift" size={20} color="#1A1A2E" />

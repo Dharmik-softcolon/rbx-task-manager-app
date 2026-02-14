@@ -81,7 +81,6 @@ export default function HomeScreen() {
 
   const QuickStat = ({ icon, label, value, color }: any) => (
     <View style={[styles.statItem, { backgroundColor: c.card, borderColor: c.border }]}>
-      <Icon name={icon} size={20} color={color} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -91,40 +90,66 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} backgroundColor={c.background} />
-      
+      <StatusBar
+        barStyle={theme.dark ? 'light-content' : 'dark-content'}
+        backgroundColor={c.background}
+      />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={c.primary}
+          />
+        }
       >
         {/* Header */}
-        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.header,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
           <View>
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.username}>{user.username}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile' as any)}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Profile' as any)}
+          >
             <Text style={styles.avatar}>{user.avatarEmoji}</Text>
           </TouchableOpacity>
         </Animated.View>
 
         {/* Balance Card */}
-        <Animated.View style={[styles.balanceCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.balanceCard,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
           <View style={styles.balanceHeader}>
             <Text style={styles.balanceLabel}>Total Balance</Text>
             <Icon name="wallet" size={20} color="rgba(255,255,255,0.8)" />
           </View>
           <View style={styles.balanceRow}>
-            <CoinIcon size={32} style={{ marginRight: 8 }} />
-            <AnimatedCounter 
-              value={user.currentBalance} 
-              style={styles.balanceAmount} 
+            <CoinIcon size={32} style={{ marginTop: 5 }} />
+            <AnimatedCounter
+              value={user.currentBalance}
+              style={styles.balanceAmount}
             />
           </View>
-          <Text style={styles.usdValue}>≈ ${(user.currentBalance / 1000).toFixed(2)} USD</Text>
-          
-          <TouchableOpacity 
-            style={[styles.withdrawButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+          <Text style={styles.usdValue}>
+            ≈ ${(user.currentBalance / 1000).toFixed(2)} USD
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.withdrawButton,
+              { backgroundColor: 'rgba(255,255,255,0.2)' },
+            ]}
             onPress={() => navigation.navigate('Profile' as any)}
           >
             <Text style={styles.withdrawText}>Withdraw Funds</Text>
@@ -138,52 +163,76 @@ export default function HomeScreen() {
             <View style={styles.rankInfo}>
               <Text style={styles.rankLabel}>Current Rank</Text>
               <View style={styles.rankBadge}>
-                <Text style={styles.rankName}>{currentRank.name} {currentRank.emoji}</Text>
+                <Text style={styles.rankName}>
+                  {currentRank.name}
+                </Text>
               </View>
             </View>
-            <View style={[styles.multiplierBadge, { backgroundColor: c.accentOrange }]}>
+            <View
+              style={[
+                styles.multiplierBadge,
+                { backgroundColor: c.accentOrange },
+              ]}
+            >
               <Icon name="lightning-bolt" size={14} color="#FFFFFF" />
-              <Text style={styles.multiplierText}>{currentRank.multiplier}x Multiplier</Text>
+              <Text style={styles.multiplierText}>
+                {currentRank.multiplier}x Multiplier
+              </Text>
             </View>
           </View>
-          
+
           <View style={[styles.progressBarBg, { backgroundColor: c.shimmer }]}>
-            <View style={[styles.progressBarFill, { width: `${rankProgress}%`, backgroundColor: currentRank.color }]} />
+            <View
+              style={[
+                styles.progressBarFill,
+                {
+                  width: `${rankProgress}%`,
+                  backgroundColor: currentRank.color,
+                },
+              ]}
+            />
           </View>
-          
+
           {nextRank && (
             <Text style={styles.nextRankText}>
-              {nextRank.requiredCoins - user.totalCoinsEarned} coins to {nextRank.name}
+              {nextRank.requiredCoins - user.totalCoinsEarned} coins to{' '}
+              {nextRank.name}
             </Text>
           )}
         </View>
 
         {/* Quick Actions Grid */}
         <View style={styles.statsGrid}>
-          <QuickStat 
-            icon="fire" 
-            label="Day Streak" 
-            value={checkinStreak} 
-            color="#FF6B35" 
+          <QuickStat
+            // icon="fire"
+            label="Day Streak"
+            value={checkinStreak}
+            color="#FF6B35"
           />
-          <QuickStat 
-            icon="trophy" 
-            label="Rank Bonus" 
-            value={`${currentRank.multiplier}x`} 
-            color="#FFD700" 
+          <QuickStat
+            // icon="trophy"
+            label="Rank Bonus"
+            value={`${currentRank.multiplier}x`}
+            color="#FFD700"
           />
-          <QuickStat 
-            icon="history" 
-            label="Total Earned" 
-            value={(user.totalCoinsEarned / 1000).toFixed(1) + 'k'} 
-            color="#3B82F6" 
+          <QuickStat
+            // icon="history"
+            label="Total Earned"
+            value={(user.totalCoinsEarned / 1000).toFixed(1) + 'k'}
+            color="#3B82F6"
           />
         </View>
 
         {/* Daily Bonus Banner */}
         {!dailyRewardClaimed && (
-          <TouchableOpacity 
-            style={[styles.actionBanner, { backgroundColor: c.accentGold + '15', borderColor: c.accentGold }]}
+          <TouchableOpacity
+            style={[
+              styles.actionBanner,
+              {
+                backgroundColor: c.accentGold + '15',
+                borderColor: c.accentGold,
+              },
+            ]}
             onPress={() => navigation.navigate('Rewards' as any)}
             activeOpacity={0.8}
           >
@@ -192,7 +241,9 @@ export default function HomeScreen() {
             </View>
             <View style={styles.bannerContent}>
               <Text style={styles.bannerTitle}>Daily Reward Available!</Text>
-              <Text style={styles.bannerSubtitle}>Claim your daily login bonus now</Text>
+              <Text style={styles.bannerSubtitle}>
+                Claim your daily login bonus now
+              </Text>
             </View>
             <Icon name="chevron-right" size={24} color={c.textSecondary} />
           </TouchableOpacity>
@@ -202,22 +253,35 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Progress</Text>
-            <Text style={styles.sectionSubtitle}>{completedTasks}/{totalDailyTasks} Tasks</Text>
+            <Text style={styles.sectionSubtitle}>
+              {completedTasks}/{totalDailyTasks} Tasks
+            </Text>
           </View>
-          
-          <View style={[styles.progressCard, { backgroundColor: c.card, borderColor: c.border }]}>
-            <View style={styles.progressCircle}>
-              <Icon name="chart-donut" size={32} color={c.primary} />
-              <Text style={[styles.progressPercent, { color: c.primary }]}>
-                {Math.round(progress * 100)}%
-              </Text>
-            </View>
+
+          <View
+            style={[
+              styles.progressCard,
+              { backgroundColor: c.card, borderColor: c.border },
+            ]}
+          >
+            {/*<View style={styles.progressCircle}>*/}
+            {/*  <Icon name="chart-donut" size={32} color={c.primary} />*/}
+            {/*  <Text style={[styles.progressPercent, { color: c.primary }]}>*/}
+            {/*    {Math.round(progress * 100)}%*/}
+            {/*  </Text>*/}
+            {/*</View>*/}
             <View style={styles.progressInfo}>
               <Text style={styles.progressText}>
-                {progress === 1 ? 'All tasks completed! 🎉' : 'Keep going! Complete tasks to earn more.'}
+                {progress === 1
+                  ? 'All tasks completed!'
+                  : 'Keep going! Complete tasks to earn more.'}
               </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Earn' as any)}>
-                <Text style={[styles.linkText, { color: c.primary }]}>Go to Tasks</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Earn' as any)}
+              >
+                <Text style={[styles.linkText, { color: c.primary }]}>
+                  Go to Tasks
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -225,36 +289,51 @@ export default function HomeScreen() {
 
         {/* Achievements Shortcuts */}
         <View style={styles.section}>
-          <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: c.card, borderColor: c.border }]} 
+          <TouchableOpacity
+            style={[
+              styles.menuItem,
+              { backgroundColor: c.card, borderColor: c.border },
+            ]}
             onPress={() => navigation.navigate('Achievements' as any)}
           >
-            <View style={[styles.menuIcon, { backgroundColor: '#8B5CF615' }]}>
-              <Icon name="medal" size={22} color="#8B5CF6" />
-            </View>
+            {/*<View style={[styles.menuIcon, { backgroundColor: '#8B5CF615' }]}>*/}
+            {/*  <Icon name="medal" size={22} color="#8B5CF6" />*/}
+            {/*</View>*/}
             <Text style={styles.menuText}>Achievements</Text>
             <Icon name="chevron-right" size={20} color={c.textTertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.actionBanner, { backgroundColor: '#EC4899' + '15', borderColor: '#EC4899', marginTop: Spacing.md }]}
+          <TouchableOpacity
+            style={[
+              styles.actionBanner,
+              {
+                backgroundColor: '#EC4899' + '15',
+                borderColor: '#EC4899',
+                marginTop: Spacing.md,
+              },
+            ]}
             onPress={() => navigation.navigate('Referral' as any)}
             activeOpacity={0.8}
           >
-            <View style={[styles.iconBox, { backgroundColor: '#EC4899' }]}>
-              <Icon name="account-multiple-plus" size={24} color="#FFFFFF" />
-            </View>
+            {/*<View style={[styles.iconBox, { backgroundColor: '#EC4899' }]}>*/}
+            {/*  <Icon name="account-multiple-plus" size={24} color="#FFFFFF" />*/}
+            {/*</View>*/}
             <View style={styles.bannerContent}>
               <Text style={styles.bannerTitle}>Invite Friends</Text>
-              <Text style={styles.bannerSubtitle}>Earn 200 RBX for every referral</Text>
+              <Text style={styles.bannerSubtitle}>
+                Earn 200 RBX for every referral
+              </Text>
             </View>
-            <View style={[styles.menuBadge, { backgroundColor: c.success + '20' }]}>
-              <Text style={[styles.menuBadgeText, { color: c.success }]}>+200 RBX</Text>
+            <View
+              style={[styles.menuBadge, { backgroundColor: c.success + '20' }]}
+            >
+              <Text style={[styles.menuBadgeText, { color: c.success }]}>
+                +200 RBX
+              </Text>
             </View>
             <Icon name="chevron-right" size={24} color={c.textSecondary} />
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </View>
   );

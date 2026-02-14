@@ -113,7 +113,7 @@ export default function TaskDetailScreen() {
     );
 
     Alert.alert(
-      '🎉 Reward Claimed!',
+      'Reward Claimed!',
       `You earned ${task.reward} RBX coins!`,
       [{ text: 'Awesome!', onPress: () => navigation.goBack() }],
     );

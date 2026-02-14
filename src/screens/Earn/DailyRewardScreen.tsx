@@ -50,7 +50,7 @@ export default function DailyRewardScreen() {
       })
     );
     setJustClaimed(true);
-    Alert.alert('🎉 Reward Claimed!', `You received ${rewardAmount} RBX coins!`);
+    Alert.alert('Reward Claimed!', `You received ${rewardAmount} RBX coins!`);
   };
 
   const styles = createStyles(c);
@@ -58,8 +58,7 @@ export default function DailyRewardScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <View style={styles.headerIconBg}>
-          <Icon name="calendar-check" size={50} color={c.accentGold} />
+        <View style={{ marginTop: 40 }}>
         </View>
         <Text style={styles.title}>Daily Rewards</Text>
         <Text style={styles.subtitle}>

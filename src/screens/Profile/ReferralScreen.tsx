@@ -69,13 +69,13 @@ export default function ReferralScreen() {
         <Text style={styles.statsTitle}>Your Referrals</Text>
         <View style={styles.statRow}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user.referralCount}</Text>
+            <Text style={styles.statValue}>{user.referralCount || 0}</Text>
             <Text style={styles.statLabel}>Friends Invited</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: c.accentGold }]}>
-              {user.referralCount * 200}
+              {user.referralCount * 200 || 0}
             </Text>
             <Text style={styles.statLabel}>RBX Earned</Text>
           </View>

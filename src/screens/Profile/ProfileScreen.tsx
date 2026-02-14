@@ -154,25 +154,21 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.statsCard}>
           <View style={styles.statRow}>
-            <Icon name="coin" size={22} color={c.accentGold} />
             <Text style={styles.statLabel}>Total Earned</Text>
             <Text style={styles.statValue}>{user.totalCoinsEarned.toLocaleString()} RBX</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statRow}>
-            <Icon name="cash" size={22} color={c.success} />
             <Text style={styles.statLabel}>Total Withdrawn</Text>
             <Text style={styles.statValue}>${user.withdrawnAmount.toFixed(2)}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statRow}>
-            <Icon name="fire" size={22} color={c.accentOrange} />
             <Text style={styles.statLabel}>Check-in Streak</Text>
             <Text style={styles.statValue}>{tasks.checkinStreak} days</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statRow}>
-            <Icon name="trophy" size={22} color={c.primary} />
             <Text style={styles.statLabel}>Best Streak</Text>
             <Text style={styles.statValue}>{tasks.longestStreak} days</Text>
           </View>
@@ -209,7 +205,7 @@ export default function ProfileScreen() {
           >
             <View style={styles.settingLeft}>
               <Icon name="help-circle-outline" size={22} color={c.info} />
-              <Text style={styles.settingLabel}>Help & FAQ</Text>
+              <Text style={styles.settingLabel}>FAQ</Text>
             </View>
             <Icon name="chevron-right" size={20} color={c.textTertiary} />
           </TouchableOpacity>

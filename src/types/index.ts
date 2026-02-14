@@ -151,7 +151,6 @@ export type RankId = 'rookie' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'dia
 export interface RankInfo {
   id: RankId;
   name: string;
-  emoji: string;
   requiredCoins: number;
   multiplier: number;
   color: string;
