@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,8 +18,9 @@ import { addCoins } from '../../store/slices/userSlice';
 import { addTransaction } from '../../store/slices/transactionSlice';
 import { DAILY_REWARD_VALUES } from '../../constants/levels';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
-import AnimatedCounter from '../../components/common/AnimatedCounter';
 import CoinIcon from '../../components/common/CoinIcon';
+
+const { width } = Dimensions.get('window');
 
 export default function DailyRewardScreen() {
   const { theme } = useTheme();
@@ -28,8 +31,48 @@ export default function DailyRewardScreen() {
   const user = useAppSelector(state => state.user);
   const [justClaimed, setJustClaimed] = useState(false);
 
+  // Animations
+  const cardAnims = useRef(DAILY_REWARD_VALUES.map(() => new Animated.Value(0))).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const headerFade = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     dispatch(checkAndAdvanceDay());
+    
+    // Header fade-in
+    Animated.timing(headerFade, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+
+    // Staggered card entrance
+    Animated.stagger(100, 
+      cardAnims.map(anim => 
+        Animated.spring(anim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        })
+      )
+    ).start();
+
+    // Pulse animation for today's card
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, [dispatch]);
 
   const today = new Date().toISOString().split('T')[0];
@@ -50,21 +93,23 @@ export default function DailyRewardScreen() {
       })
     );
     setJustClaimed(true);
-    Alert.alert('Reward Claimed!', `You received ${rewardAmount} RBX coins!`);
+    Alert.alert('Success!', `Day ${dailyState.currentDay} reward of ${rewardAmount} RBX has been claimed!`);
   };
 
   const styles = createStyles(c);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
-        <View style={{ marginTop: 40 }}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <Animated.View style={[styles.header, { opacity: headerFade }]}>
+        <View style={styles.streakContainer}>
+          <Icon name="fire" size={40} color={c.accentOrange} />
+          <Text style={styles.streakCount}>{dailyState.currentDay}</Text>
         </View>
-        <Text style={styles.title}>Daily Rewards</Text>
+        <Text style={styles.title}>Daily Reward</Text>
         <Text style={styles.subtitle}>
-          Login every day to claim bigger rewards. Miss a day and your progress may reset!
+          Earn rewards daily. Collect them all to unlock the Day 7 Grand Prize!
         </Text>
-      </View>
+      </Animated.View>
 
       <View style={styles.grid}>
         {DAILY_REWARD_VALUES.map((amount, index) => {
@@ -72,39 +117,59 @@ export default function DailyRewardScreen() {
           const isCurrent = dailyState.currentDay === dayNum;
           const isClaimed = dailyState.claimedDays.includes(dayNum);
           const isLocked = dayNum > dailyState.currentDay;
+          const isLastDay = dayNum === 7;
+
+          const animatedStyle = {
+            opacity: cardAnims[index],
+            transform: [
+              { scale: isCurrent ? pulseAnim : cardAnims[index] },
+              { translateY: cardAnims[index].interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0]
+                }) 
+              }
+            ],
+          };
 
           return (
-            <View
+            <Animated.View
               key={dayNum}
               style={[
-                styles.dayCard,
-                isCurrent && styles.dayCardCurrent,
-                isClaimed && styles.dayCardClaimed,
-                dayNum === 7 && styles.dayCardLarge,
+                styles.dayCardWrapper,
+                isLastDay && styles.lastDayCardWrapper,
+                animatedStyle
               ]}>
-              <Text style={[styles.dayText, isCurrent && { color: c.textInverse }]}>
-                Day {dayNum}
-              </Text>
-              
-              <View style={styles.coinContainer}>
-                {isClaimed ? (
-                  <Icon name="check-circle" size={32} color={c.success} />
-                ) : (
-                  <>
-                    <CoinIcon size={dayNum === 7 ? 32 : 24} style={{ marginBottom: 4 }} />
-                    <Text style={[styles.amountText, isCurrent && { color: c.textInverse }]}>
-                      {amount}
-                    </Text>
-                  </>
+              <View
+                style={[
+                  styles.dayCard,
+                  isCurrent && styles.dayCardCurrent,
+                  isClaimed && styles.dayCardClaimed,
+                  isLastDay && styles.dayCardLarge,
+                ]}>
+                <Text style={[styles.dayText, isCurrent && styles.textInverse]}>
+                  Day {dayNum}
+                </Text>
+                
+                <View style={styles.coinContainer}>
+                  {isClaimed ? (
+                    <Icon name="check-decagram" size={36} color={c.success} />
+                  ) : (
+                    <>
+                      <CoinIcon size={isLastDay ? 40 : 28} style={{ marginBottom: 4 }} />
+                      <Text style={[styles.amountText, isCurrent && styles.textInverse]}>
+                        {amount}
+                      </Text>
+                    </>
+                  )}
+                </View>
+
+                {isLocked && !isClaimed && (
+                  <View style={styles.lockOverlay}>
+                    <Icon name="lock" size={18} color={c.textTertiary} />
+                  </View>
                 )}
               </View>
-
-              {isLocked && (
-                <View style={styles.lockOverlay}>
-                  <Icon name="lock" size={20} color={c.textTertiary} />
-                </View>
-              )}
-            </View>
+            </Animated.View>
           );
         })}
       </View>
@@ -117,9 +182,14 @@ export default function DailyRewardScreen() {
         onPress={handleClaim}
         disabled={isClaimedToday || justClaimed}
         activeOpacity={0.8}>
-        <Text style={styles.claimButtonText}>
-          {isClaimedToday || justClaimed ? 'Come Back Tomorrow' : 'Claim Reward'}
-        </Text>
+        {isClaimedToday || justClaimed ? (
+          <View style={styles.claimedButtonContent}>
+            <Icon name="clock-outline" size={20} color={c.textTertiary} />
+            <Text style={styles.claimButtonTextDisabled}>Come Back Tomorrow</Text>
+          </View>
+        ) : (
+          <Text style={styles.claimButtonText}>Claim Today's Reward</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -137,17 +207,30 @@ const createStyles = (c: any) =>
     },
     header: {
       alignItems: 'center',
-      marginBottom: Spacing.xxxl,
+      marginBottom: Spacing.xxl,
       marginTop: Spacing.lg,
     },
-    headerIconBg: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: c.accentGold + '15',
-      alignItems: 'center',
+    streakContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: c.card,
       justifyContent: 'center',
-      marginBottom: Spacing.lg,
+      alignItems: 'center',
+      marginBottom: Spacing.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      shadowColor: c.accentOrange,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      elevation: 5,
+    },
+    streakCount: {
+      position: 'absolute',
+      ...Typography.h2,
+      color: c.textPrimary,
+      marginTop: 8,
     },
     title: {
       ...Typography.h1,
@@ -159,59 +242,76 @@ const createStyles = (c: any) =>
       color: c.textSecondary,
       textAlign: 'center',
       marginTop: Spacing.sm,
-      paddingHorizontal: Spacing.lg,
+      paddingHorizontal: Spacing.md,
     },
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: Spacing.md,
-      marginBottom: Spacing.xxxl,
+      marginBottom: Spacing.xxl,
+    },
+    dayCardWrapper: {
+      width: (width - Spacing.xl * 2 - Spacing.md * 2) / 3,
+      aspectRatio: 1,
+      marginBottom: Spacing.md,
+    },
+    lastDayCardWrapper: {
+      width: '100%',
+      aspectRatio: 3,
     },
     dayCard: {
-      width: '30%',
-      aspectRatio: 1,
+      flex: 1,
       backgroundColor: c.card,
-      borderRadius: BorderRadius.lg,
+      borderRadius: BorderRadius.xl,
       padding: Spacing.sm,
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       borderWidth: 1,
       borderColor: c.border,
-      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
     dayCardLarge: {
-      width: '100%',
-      aspectRatio: 2.5,
       flexDirection: 'row',
-      paddingHorizontal: Spacing.xl,
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.xxl,
     },
     dayCardCurrent: {
       backgroundColor: c.primary,
       borderColor: c.primary,
+      borderWidth: 2,
+      shadowColor: c.primary,
+      shadowOpacity: 0.4,
+      shadowRadius: 15,
+      elevation: 10,
     },
     dayCardClaimed: {
-      backgroundColor: c.success + '10',
-      borderColor: c.success,
+      backgroundColor: c.success + '05',
+      borderColor: c.success + '40',
+      elevation: 0,
     },
     dayText: {
-      ...Typography.small,
+      ...Typography.caption,
       color: c.textSecondary,
       fontWeight: '700',
+      marginBottom: 4,
+      textTransform: 'uppercase',
     },
     coinContainer: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 6,
-    },
-    coinEmoji: {
-      fontSize: 24,
-      marginBottom: 4,
     },
     amountText: {
       ...Typography.subtitle,
       color: c.accentGold,
       fontWeight: '800',
+      fontSize: 16,
+    },
+    textInverse: {
+      color: '#FFFFFF',
     },
     lockOverlay: {
       position: 'absolute',
@@ -219,24 +319,40 @@ const createStyles = (c: any) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.05)',
+      backgroundColor: 'rgba(0,0,0,0.02)',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: BorderRadius.lg,
+      borderRadius: BorderRadius.xl,
     },
     claimButton: {
-      backgroundColor: c.accentGold,
+      backgroundColor: c.primary,
       paddingVertical: Spacing.lg,
-      borderRadius: BorderRadius.lg,
+      borderRadius: BorderRadius.xl,
       alignItems: 'center',
-      elevation: 4,
+      shadowColor: c.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 15,
+      elevation: 8,
     },
     claimButtonDisabled: {
       backgroundColor: c.shimmer,
       elevation: 0,
+      shadowOpacity: 0,
     },
     claimButtonText: {
       ...Typography.button,
-      color: '#1A1A2E',
+      color: '#FFFFFF',
+      fontSize: 18,
+    },
+    claimedButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    claimButtonTextDisabled: {
+      ...Typography.button,
+      color: c.textTertiary,
+      fontSize: 16,
     },
   });
