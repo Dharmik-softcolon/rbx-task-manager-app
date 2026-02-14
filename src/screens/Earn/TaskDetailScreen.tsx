@@ -24,7 +24,7 @@ export default function TaskDetailScreen() {
   const { theme } = useTheme();
   const c = theme.colors;
   const route = useRoute<TaskDetailRoute>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const { taskId } = route.params;
   const task = useAppSelector(state => state.tasks.tasks.find(t => t.id === taskId));

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { UserProfile } from '../../types';
+import { generateReferralCode } from '../../constants/levels';
 
 const initialState: UserProfile = {
   id: 'user_1',
@@ -9,6 +10,9 @@ const initialState: UserProfile = {
   totalCoinsEarned: 0,
   currentBalance: 0,
   withdrawnAmount: 0,
+  hasCompletedOnboarding: false,
+  referralCode: generateReferralCode('user_1'),
+  referralCount: 0,
 };
 
 const userSlice = createSlice({
@@ -29,14 +33,28 @@ const userSlice = createSlice({
       const coinsToWithdraw = action.payload;
       if (state.currentBalance >= coinsToWithdraw) {
         state.currentBalance -= coinsToWithdraw;
-        state.withdrawnAmount += coinsToWithdraw / 1000; // Convert to dollars
+        state.withdrawnAmount += coinsToWithdraw / 1000;
       }
     },
+    completeOnboarding(state) {
+      state.hasCompletedOnboarding = true;
+    },
+    addReferral(state) {
+      state.referralCount += 1;
+    },
     resetUser() {
-      return initialState;
+      return { ...initialState, referralCode: generateReferralCode('user_1') };
     },
   },
 });
 
-export const { updateUsername, updateAvatar, addCoins, withdrawCoins, resetUser } = userSlice.actions;
+export const {
+  updateUsername,
+  updateAvatar,
+  addCoins,
+  withdrawCoins,
+  completeOnboarding,
+  addReferral,
+  resetUser,
+} = userSlice.actions;
 export default userSlice.reducer;

@@ -4,17 +4,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import userReducer from './slices/userSlice';
 import taskReducer from './slices/taskSlice';
 import transactionReducer from './slices/transactionSlice';
+import achievementReducer from './slices/achievementSlice';
+import dailyRewardReducer from './slices/dailyRewardSlice';
 
 const persistConfig = {
   key: 'rbx_root',
   storage: AsyncStorage,
-  whitelist: ['user', 'tasks', 'transactions'],
+  whitelist: ['user', 'tasks', 'transactions', 'achievements', 'dailyReward'],
 };
 
 const rootReducer = combineReducers({
   user: userReducer,
   tasks: taskReducer,
   transactions: transactionReducer,
+  achievements: achievementReducer,
+  dailyReward: dailyRewardReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

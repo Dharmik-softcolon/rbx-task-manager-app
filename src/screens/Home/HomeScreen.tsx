@@ -1,32 +1,52 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  StatusBar,
-  Animated,
   TouchableOpacity,
+  RefreshControl,
+  Animated,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/ThemeContext';
 import { useAppSelector, useAppDispatch } from '../../hooks/useStore';
 import { checkAndResetDailyTasks } from '../../store/slices/taskSlice';
+import { checkAndAdvanceDay } from '../../store/slices/dailyRewardSlice';
+import { checkAchievements } from '../../store/slices/achievementSlice';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { getUserRank, getRankProgress, getNextRank } from '../../constants/levels';
+import AnimatedCounter from '../../components/common/AnimatedCounter';
 
 export default function HomeScreen() {
   const { theme } = useTheme();
   const c = theme.colors;
+  const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
+  
   const user = useAppSelector(state => state.user);
-  const tasks = useAppSelector(state => state.tasks);
-  const transactions = useAppSelector(state => state.transactions);
+  const { tasks, checkinStreak, longestStreak } = useAppSelector(state => state.tasks);
+  const { lastClaimDate } = useAppSelector(state => state.dailyReward);
 
-  const fadeAnim = useMemo(() => new Animated.Value(0), []);
-  const slideAnim = useMemo(() => new Animated.Value(30), []);
+  const [refreshing, setRefreshing] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  // Derived state
+  const completedTasks = tasks.filter(t => t.completed && t.category === 'daily').length;
+  const totalDailyTasks = tasks.filter(t => t.category === 'daily').length;
+  const progress = totalDailyTasks > 0 ? completedTasks / totalDailyTasks : 0;
+  
+  const currentRank = getUserRank(user.totalCoinsEarned);
+  const nextRank = getNextRank(user.totalCoinsEarned);
+  const rankProgress = getRankProgress(user.totalCoinsEarned);
+
+  const today = new Date().toISOString().split('T')[0];
+  const dailyRewardClaimed = lastClaimDate === today;
 
   useEffect(() => {
-    dispatch(checkAndResetDailyTasks());
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -39,148 +59,197 @@ export default function HomeScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [dispatch, fadeAnim, slideAnim]);
+  }, [fadeAnim, slideAnim]);
 
-  const completedTasks = tasks.tasks.filter(t => t.claimed).length;
-  const totalTasks = tasks.tasks.length;
-  const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  const dollarValue = (user.currentBalance / 1000).toFixed(2);
-  const todayEarnings = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return transactions.transactions
-      .filter(t => t.timestamp.startsWith(today) && t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions.transactions]);
+  const handleRefresh = () => {
+    setRefreshing(true);
+    dispatch(checkAndResetDailyTasks());
+    dispatch(checkAndAdvanceDay());
+    // Also re-check achievements
+    dispatch(checkAchievements({
+      totalCoins: user.totalCoinsEarned,
+      streak: longestStreak,
+      tasksCompleted: completedTasks,
+      totalTasks: totalDailyTasks,
+      hasSpun: false,
+      hasShared: false,
+      hasWithdrawn: user.withdrawnAmount > 0,
+    }));
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const QuickStat = ({ icon, label, value, color }: any) => (
+    <View style={[styles.statItem, { backgroundColor: c.card, borderColor: c.border }]}>
+      <Icon name={icon} size={20} color={color} />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
 
   const styles = createStyles(c);
 
   return (
     <View style={styles.container}>
-      <StatusBar
-        barStyle={theme.dark ? 'light-content' : 'dark-content'}
-        backgroundColor={c.background}
-      />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.greeting}>Welcome back,</Text>
-              <Text style={styles.username}>{user.username} {user.avatarEmoji}</Text>
+      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} backgroundColor={c.background} />
+      
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={c.primary} />}
+      >
+        {/* Header */}
+        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          <View>
+            <Text style={styles.greeting}>Welcome back,</Text>
+            <Text style={styles.username}>{user.username}</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile' as any)}>
+            <Text style={styles.avatar}>{user.avatarEmoji}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Balance Card */}
+        <Animated.View style={[styles.balanceCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.balanceHeader}>
+            <Text style={styles.balanceLabel}>Total Balance</Text>
+            <Icon name="wallet" size={20} color="rgba(255,255,255,0.8)" />
+          </View>
+          <View style={styles.balanceRow}>
+            <Text style={styles.currencySymbol}>🪙</Text>
+            <AnimatedCounter 
+              value={user.currentBalance} 
+              style={styles.balanceAmount} 
+            />
+          </View>
+          <Text style={styles.usdValue}>≈ ${(user.currentBalance / 1000).toFixed(2)} USD</Text>
+          
+          <TouchableOpacity 
+            style={[styles.withdrawButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]}
+            onPress={() => navigation.navigate('Profile' as any)}
+          >
+            <Text style={styles.withdrawText}>Withdraw Funds</Text>
+            <Icon name="arrow-right" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Level Progress */}
+        <View style={styles.section}>
+          <View style={styles.rankHeader}>
+            <View style={styles.rankInfo}>
+              <Text style={styles.rankLabel}>Current Rank</Text>
+              <View style={styles.rankBadge}>
+                <Text style={styles.rankName}>{currentRank.name} {currentRank.emoji}</Text>
+              </View>
             </View>
-            <View style={styles.streakBadge}>
-              <Icon name="fire" size={18} color={c.accentOrange} />
-              <Text style={styles.streakText}>{tasks.checkinStreak}</Text>
+            <View style={[styles.multiplierBadge, { backgroundColor: c.accentOrange }]}>
+              <Icon name="lightning-bolt" size={14} color="#FFFFFF" />
+              <Text style={styles.multiplierText}>{currentRank.multiplier}x Multiplier</Text>
             </View>
           </View>
-
-          {/* Balance Card */}
-          <View style={styles.balanceCard}>
-            <View style={styles.balanceGradient}>
-              <Text style={styles.balanceLabel}>Your RBX Balance</Text>
-              <View style={styles.balanceRow}>
-                <Text style={styles.coinIcon}>🪙</Text>
-                <Text style={styles.balanceAmount}>
-                  {user.currentBalance.toLocaleString()}
-                </Text>
-                <Text style={styles.balanceCurrency}>RBX</Text>
-              </View>
-              <View style={styles.dollarRow}>
-                <Icon name="approximately-equal" size={16} color="rgba(255,255,255,0.8)" />
-                <Text style={styles.dollarValue}>${dollarValue} USD</Text>
-              </View>
-              <View style={styles.balanceDivider} />
-              <View style={styles.balanceStats}>
-                <View style={styles.balanceStat}>
-                  <Text style={styles.balanceStatLabel}>Total Earned</Text>
-                  <Text style={styles.balanceStatValue}>
-                    {user.totalCoinsEarned.toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.balanceStatDivider} />
-                <View style={styles.balanceStat}>
-                  <Text style={styles.balanceStatLabel}>Withdrawn</Text>
-                  <Text style={styles.balanceStatValue}>
-                    ${user.withdrawnAmount.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            </View>
+          
+          <View style={[styles.progressBarBg, { backgroundColor: c.shimmer }]}>
+            <View style={[styles.progressBarFill, { width: `${rankProgress}%`, backgroundColor: currentRank.color }]} />
           </View>
-
-          {/* Conversion Info */}
-          <View style={styles.conversionCard}>
-            <Icon name="swap-horizontal" size={20} color={c.primary} />
-            <Text style={styles.conversionText}>
-              1,000 RBX = $1.00 USD
+          
+          {nextRank && (
+            <Text style={styles.nextRankText}>
+              {nextRank.requiredCoins - user.totalCoinsEarned} coins to {nextRank.name}
             </Text>
-            <View style={styles.conversionBadge}>
-              <Text style={styles.conversionBadgeText}>
-                {Math.floor(user.currentBalance / 1000)} withdrawable
-              </Text>
-            </View>
-          </View>
+          )}
+        </View>
 
-          {/* Daily Progress */}
+        {/* Quick Actions Grid */}
+        <View style={styles.statsGrid}>
+          <QuickStat 
+            icon="fire" 
+            label="Day Streak" 
+            value={checkinStreak} 
+            color="#FF6B35" 
+          />
+          <QuickStat 
+            icon="trophy" 
+            label="Rank Bonus" 
+            value={`${currentRank.multiplier}x`} 
+            color="#FFD700" 
+          />
+          <QuickStat 
+            icon="history" 
+            label="Total Earned" 
+            value={(user.totalCoinsEarned / 1000).toFixed(1) + 'k'} 
+            color="#3B82F6" 
+          />
+        </View>
+
+        {/* Daily Bonus Banner */}
+        {!dailyRewardClaimed && (
+          <TouchableOpacity 
+            style={[styles.actionBanner, { backgroundColor: c.accentGold + '15', borderColor: c.accentGold }]}
+            onPress={() => navigation.navigate('Rewards' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.iconBox, { backgroundColor: c.accentGold }]}>
+              <Icon name="gift" size={24} color="#1A1A2E" />
+            </View>
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerTitle}>Daily Reward Available!</Text>
+              <Text style={styles.bannerSubtitle}>Claim your daily login bonus now</Text>
+            </View>
+            <Icon name="chevron-right" size={24} color={c.textSecondary} />
+          </TouchableOpacity>
+        )}
+
+        {/* Task Progress */}
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Progress</Text>
-            <Text style={styles.sectionSubtitle}>
-              {completedTasks}/{totalTasks} tasks
-            </Text>
+            <Text style={styles.sectionSubtitle}>{completedTasks}/{totalDailyTasks} Tasks</Text>
           </View>
-          <View style={styles.progressCard}>
-            <View style={styles.progressBarBg}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${progressPercent}%` },
-                ]}
-              />
-            </View>
-            <View style={styles.progressDetails}>
-              <View style={styles.progressItem}>
-                <Icon name="check-circle" size={18} color={c.success} />
-                <Text style={styles.progressItemText}>
-                  {completedTasks} Completed
-                </Text>
-              </View>
-              <View style={styles.progressItem}>
-                <Icon name="clock-outline" size={18} color={c.warning} />
-                <Text style={styles.progressItemText}>
-                  {totalTasks - completedTasks} Remaining
-                </Text>
-              </View>
-            </View>
-            <View style={styles.todayEarningsRow}>
-              <Text style={styles.todayEarningsLabel}>Today's Earnings</Text>
-              <Text style={styles.todayEarningsValue}>+{todayEarnings} RBX</Text>
-            </View>
-          </View>
-
-          {/* Quick Stats */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Stats</Text>
-          </View>
-          <View style={styles.statsGrid}>
-            <View style={[styles.statCard, { borderLeftColor: c.primary }]}>
-              <Icon name="calendar-check" size={24} color={c.primary} />
-              <Text style={styles.statValue}>{tasks.checkinStreak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-            <View style={[styles.statCard, { borderLeftColor: c.accentOrange }]}>
-              <Icon name="trophy" size={24} color={c.accentOrange} />
-              <Text style={styles.statValue}>{tasks.longestStreak}</Text>
-              <Text style={styles.statLabel}>Best Streak</Text>
-            </View>
-            <View style={[styles.statCard, { borderLeftColor: c.accentGold }]}>
-              <Icon name="history" size={24} color={c.accentGold} />
-              <Text style={styles.statValue}>
-                {transactions.transactions.length}
+          
+          <View style={[styles.progressCard, { backgroundColor: c.card, borderColor: c.border }]}>
+            <View style={styles.progressCircle}>
+              <Icon name="chart-donut" size={32} color={c.primary} />
+              <Text style={[styles.progressPercent, { color: c.primary }]}>
+                {Math.round(progress * 100)}%
               </Text>
-              <Text style={styles.statLabel}>Transactions</Text>
+            </View>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressText}>
+                {progress === 1 ? 'All tasks completed! 🎉' : 'Keep going! Complete tasks to earn more.'}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Earn' as any)}>
+                <Text style={[styles.linkText, { color: c.primary }]}>Go to Tasks</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </Animated.View>
+        </View>
+
+        {/* Achievements Shortcuts */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { backgroundColor: c.card, borderColor: c.border }]} 
+            onPress={() => navigation.navigate('Achievements' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#8B5CF615' }]}>
+              <Icon name="medal" size={22} color="#8B5CF6" />
+            </View>
+            <Text style={styles.menuText}>Achievements</Text>
+            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.menuItem, { backgroundColor: c.card, borderColor: c.border }]} 
+            onPress={() => navigation.navigate('Referral' as any)}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#EC489915' }]}>
+              <Icon name="account-multiple-plus" size={22} color="#EC4899" />
+            </View>
+            <Text style={styles.menuText}>Invite Friends</Text>
+            <View style={[styles.menuBadge, { backgroundColor: c.success + '20' }]}>
+              <Text style={[styles.menuBadgeText, { color: c.success }]}>+200 RBX</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={c.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </View>
   );
@@ -193,15 +262,15 @@ const createStyles = (c: any) =>
       backgroundColor: c.background,
     },
     scrollContent: {
-      paddingBottom: 30,
+      padding: Spacing.xl,
+      paddingTop: Spacing.xxxl,
+      paddingBottom: 40,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: Spacing.xl,
-      paddingTop: Spacing.xxxl + 16,
-      paddingBottom: Spacing.lg,
+      marginBottom: Spacing.xl,
     },
     greeting: {
       ...Typography.body,
@@ -210,31 +279,30 @@ const createStyles = (c: any) =>
     username: {
       ...Typography.h2,
       color: c.textPrimary,
-      marginTop: 2,
     },
-    streakBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: c.cardElevated,
-      paddingHorizontal: Spacing.md,
-      paddingVertical: Spacing.sm,
+    avatar: {
+      fontSize: 40,
+      backgroundColor: c.card,
+      padding: 4,
       borderRadius: BorderRadius.full,
-      gap: 4,
-    },
-    streakText: {
-      ...Typography.subtitle,
-      color: c.accentOrange,
+      overflow: 'hidden',
     },
     balanceCard: {
-      marginHorizontal: Spacing.xl,
-      borderRadius: BorderRadius.xl,
-      overflow: 'hidden',
-      marginBottom: Spacing.lg,
-    },
-    balanceGradient: {
       backgroundColor: c.primary,
-      padding: Spacing.xl,
       borderRadius: BorderRadius.xl,
+      padding: Spacing.lg,
+      marginBottom: Spacing.xl,
+      shadowColor: c.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    balanceHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.xs,
     },
     balanceLabel: {
       ...Typography.caption,
@@ -245,89 +313,144 @@ const createStyles = (c: any) =>
     balanceRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: Spacing.sm,
-      gap: 8,
+      marginBottom: 4,
     },
-    coinIcon: {
+    currencySymbol: {
       fontSize: 32,
+      color: '#FFFFFF',
+      marginRight: 8,
     },
     balanceAmount: {
-      ...Typography.coinLarge,
+      fontSize: 36,
+      fontWeight: '800',
       color: '#FFFFFF',
     },
-    balanceCurrency: {
-      ...Typography.subtitle,
-      color: 'rgba(255,255,255,0.7)',
-      marginTop: 8,
+    usdValue: {
+      ...Typography.bodyMedium,
+      color: 'rgba(255,255,255,0.9)',
+      marginBottom: Spacing.lg,
     },
-    dollarRow: {
+    withdrawButton: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.lg,
+    },
+    withdrawText: {
+      ...Typography.button,
+      color: '#FFFFFF',
+      fontSize: 14,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.lg,
+      gap: Spacing.sm,
+    },
+    statItem: {
+      flex: 1,
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      alignItems: 'center',
+      borderWidth: 1,
+    },
+    statValue: {
+      ...Typography.h3,
+      color: c.textPrimary,
       marginTop: 4,
-      gap: 4,
     },
-    dollarValue: {
-      ...Typography.body,
-      color: 'rgba(255,255,255,0.8)',
-    },
-    balanceDivider: {
-      height: 1,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      marginVertical: Spacing.lg,
-    },
-    balanceStats: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-    },
-    balanceStat: {
-      alignItems: 'center',
-    },
-    balanceStatLabel: {
-      ...Typography.caption,
-      color: 'rgba(255,255,255,0.7)',
-    },
-    balanceStatValue: {
-      ...Typography.subtitle,
-      color: '#FFFFFF',
+    statLabel: {
+      ...Typography.small,
+      color: c.textSecondary,
       marginTop: 2,
     },
-    balanceStatDivider: {
-      width: 1,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-    },
-    conversionCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: Spacing.xl,
-      backgroundColor: c.card,
-      padding: Spacing.lg,
-      borderRadius: BorderRadius.lg,
+    section: {
       marginBottom: Spacing.xl,
-      gap: 10,
-      borderWidth: 1,
-      borderColor: c.border,
     },
-    conversionText: {
-      ...Typography.bodyMedium,
-      color: c.textPrimary,
+    rankHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      marginBottom: Spacing.sm,
+    },
+    rankInfo: {
       flex: 1,
     },
-    conversionBadge: {
-      backgroundColor: c.primaryLight,
-      paddingHorizontal: Spacing.md,
-      paddingVertical: Spacing.xs,
+    rankLabel: {
+      ...Typography.caption,
+      color: c.textSecondary,
+      marginBottom: 2,
+    },
+    rankName: {
+      ...Typography.subtitle,
+      color: c.textPrimary,
+      fontWeight: '700',
+    },
+    rankBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    multiplierBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: BorderRadius.full,
+      gap: 4,
+    },
+    multiplierText: {
+      ...Typography.tiny,
+      color: '#FFFFFF',
+      fontWeight: '700',
+    },
+    progressBarBg: {
+      height: 8,
+      borderRadius: BorderRadius.full,
+      overflow: 'hidden',
+      marginBottom: 6,
+    },
+    progressBarFill: {
+      height: '100%',
       borderRadius: BorderRadius.full,
     },
-    conversionBadgeText: {
+    nextRankText: {
       ...Typography.small,
-      color: c.primaryDark,
-      fontWeight: '600',
+      color: c.textTertiary,
+      textAlign: 'right',
+    },
+    actionBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      marginBottom: Spacing.xl,
+    },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: BorderRadius.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Spacing.md,
+    },
+    bannerContent: {
+      flex: 1,
+    },
+    bannerTitle: {
+      ...Typography.subtitle,
+      color: c.textPrimary,
+    },
+    bannerSubtitle: {
+      ...Typography.small,
+      color: c.textSecondary,
     },
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: Spacing.xl,
       marginBottom: Spacing.md,
     },
     sectionTitle: {
@@ -335,82 +458,68 @@ const createStyles = (c: any) =>
       color: c.textPrimary,
     },
     sectionSubtitle: {
-      ...Typography.bodyMedium,
-      color: c.primary,
+      ...Typography.caption,
+      color: c.textTertiary,
     },
     progressCard: {
-      marginHorizontal: Spacing.xl,
-      backgroundColor: c.card,
-      padding: Spacing.lg,
-      borderRadius: BorderRadius.lg,
-      marginBottom: Spacing.xl,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    progressBarBg: {
-      height: 8,
-      backgroundColor: c.shimmer,
-      borderRadius: BorderRadius.full,
-      overflow: 'hidden',
-    },
-    progressBarFill: {
-      height: '100%',
-      backgroundColor: c.primary,
-      borderRadius: BorderRadius.full,
-    },
-    progressDetails: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: Spacing.md,
-    },
-    progressItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      padding: Spacing.lg,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
     },
-    progressItemText: {
+    progressCircle: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: Spacing.lg,
+    },
+    progressPercent: {
+      position: 'absolute',
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    progressInfo: {
+      flex: 1,
+    },
+    progressText: {
       ...Typography.bodyMedium,
       color: c.textSecondary,
+      marginBottom: 4,
     },
-    todayEarningsRow: {
+    linkText: {
+      ...Typography.button,
+      fontSize: 14,
+    },
+    menuItem: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      marginTop: Spacing.md,
-      paddingTop: Spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: c.borderLight,
-    },
-    todayEarningsLabel: {
-      ...Typography.body,
-      color: c.textSecondary,
-    },
-    todayEarningsValue: {
-      ...Typography.subtitle,
-      color: c.success,
-    },
-    statsGrid: {
-      flexDirection: 'row',
-      paddingHorizontal: Spacing.xl,
-      gap: Spacing.md,
-    },
-    statCard: {
-      flex: 1,
-      backgroundColor: c.card,
-      padding: Spacing.lg,
+      padding: Spacing.md,
       borderRadius: BorderRadius.lg,
-      alignItems: 'center',
-      borderLeftWidth: 3,
+      marginBottom: Spacing.sm,
       borderWidth: 1,
-      borderColor: c.border,
-      gap: 4,
     },
-    statValue: {
-      ...Typography.h3,
+    menuIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: Spacing.md,
+    },
+    menuText: {
+      ...Typography.bodyMedium,
       color: c.textPrimary,
+      flex: 1,
+      fontWeight: '600',
     },
-    statLabel: {
-      ...Typography.caption,
-      color: c.textSecondary,
+    menuBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 4,
+      marginRight: 8,
+    },
+    menuBadgeText: {
+      ...Typography.tiny,
+      fontWeight: '700',
     },
   });
